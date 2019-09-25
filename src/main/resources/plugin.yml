@@ -1,0 +1,7 @@
+name: MitwLobby
+version: 1.0
+main: mitw.lobby.MitwLobby
+depend: [Mitw]
+commands:
+  setspawn:
+  lang:
