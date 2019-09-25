@@ -1,4 +1,4 @@
-package mitw.lobby;
+package mitw.lobby.util;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;

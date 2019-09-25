@@ -3,7 +3,7 @@ package mitw.lobby.gui;
 import java.util.HashMap;
 import java.util.Map;
 
-import mitw.lobby.ItemStackBuilder;
+import net.development.mitw.utils.ItemBuilder;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
@@ -19,7 +19,7 @@ public class LanguageGUI extends Menu {
 	public Map<Integer, Button> getButtons(final Player arg0) {
 		final Map<Integer, Button> buttons = new HashMap<>();
 
-		buttons.put(0, new LanguageButton("&6&lChinese ¤¤¤å", "zh_tw"));
+		buttons.put(0, new LanguageButton("&6&lChinese ä¸­æ–‡", "zh_tw"));
 		buttons.put(1, new LanguageButton("&6&lEnglish", "en_us"));
 
 		return buttons;
@@ -27,7 +27,7 @@ public class LanguageGUI extends Menu {
 
 	@Override
 	public String getTitle(final Player arg0) {
-		return "¡±6¡±lLanguages ¡±7| ¡±f»y¨¥";
+		return "Â§6Â§lLanguages Â§7| Â§fèªè¨€";
 	}
 
 	private class LanguageButton extends Button {
@@ -42,7 +42,7 @@ public class LanguageGUI extends Menu {
 
 		@Override
 		public ItemStack getButtonItem(final Player player) {
-			return ItemStackBuilder.createItem1(Material.BOOK, 1, 0, displayName, "&7click me to select this language!", "&7ÂI§Ú¿ï¾Ü¸Ó»y¨¥!");
+			return new ItemBuilder(Material.BOOK).name(displayName).lore("&7click me to select this language!", "&7é»æˆ‘é¸æ“‡è©²èªè¨€!").build();
 		}
 
 		@Override

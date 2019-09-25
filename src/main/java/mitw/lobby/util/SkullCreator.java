@@ -1,4 +1,4 @@
-package mitw.lobby;
+package mitw.lobby.util;
 
 import java.net.URI;
 import java.net.URISyntaxException;

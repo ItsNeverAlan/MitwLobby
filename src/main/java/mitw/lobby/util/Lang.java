@@ -1,24 +1,24 @@
-package mitw.lobby;
+package mitw.lobby.util;
 
 import java.util.Arrays;
 import java.util.List;
 
 public class Lang {
 
-	public String zh_tw_server = "&e¦øªA¾¹¿ï³æ";
-	public String zh_tw_bow = "&a¶Ç°e¤}";
-	public String zh_tw_language = "&6»y¨¥&7 (Language)";
+	public String zh_tw_server = "&eä¼ºæœå™¨é¸å–®";
+	public String zh_tw_bow = "&aå‚³é€å¼“";
+	public String zh_tw_language = "&6èªè¨€&7 (Language)";
 
-	public String zh_tw_server_lore = "&7ÂI§Ú¥´¶}¦øªA¾¹¿ï³æ!";
-	public String zh_tw_bow_lore = "&7®g¨ì¥ô¦ó§A·Q¥hªº¦a¤è!";
-	public String zh_tw_lang_lore = "&7ÂI¶}§Ú¿ï¾Ü»y¨¥!";
+	public String zh_tw_server_lore = "&7é»æˆ‘æ‰“é–‹ä¼ºæœå™¨é¸å–®!";
+	public String zh_tw_bow_lore = "&7å°„åˆ°ä»»ä½•ä½ æƒ³å»çš„åœ°æ–¹!";
+	public String zh_tw_lang_lore = "&7é»é–‹æˆ‘é¸æ“‡èªè¨€!";
 
 	public List<String> zh_tw_sidebar = Arrays.asList(
 			"&7&m*-------------------*",
-			"&f¦øªA¾¹¤H¼Æ:",
+			"&fä¼ºæœå™¨äººæ•¸:",
 			"&6<bungee_count>",
 			" ",
-			"&f©µ¿ğ:",
+			"&få»¶é²:",
 			"&6<ping>",
 			" ",
 			"&6&lMitw.Rip",
