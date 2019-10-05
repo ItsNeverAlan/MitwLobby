@@ -39,6 +39,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.weather.WeatherChangeEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -54,6 +55,7 @@ import net.development.mitw.language.LanguageAPI;
 import net.development.mitw.language.LanguageAPI.LangType;
 import net.development.mitw.utils.ItemBuilder;
 import net.md_5.bungee.api.ChatColor;
+import org.spigotmc.event.player.PlayerSpawnLocationEvent;
 
 public class MitwLobby extends JavaPlugin implements Listener, CommandExecutor {
 
@@ -66,22 +68,26 @@ public class MitwLobby extends JavaPlugin implements Listener, CommandExecutor {
 	@Override
 	public void onEnable() {
 		instance = this;
-		for (final Chunk chunk : Bukkit.getWorld("world").getLoadedChunks()) {
-			for (final Entity entity : chunk.getEntities()) {
-				entity.remove();
-			}
-		}
-		Bukkit.getPluginManager().registerEvents(this, this);
+
+		this.getServer().getPluginManager().registerEvents(this, this);
+
 		saveDefaultConfig();
 		getConfig().options().copyDefaults();
 		saveConfig();
+
 		this.language = new LanguageAPI(LangType.CLASS, this, Mitw.getInstance().getLanguageData(), new Lang());
-		Bukkit.getConsoleSender().sendMessage(ChatColor.GREEN + "Mitw lobby plugin enabled!");
+		this.getServer().getConsoleSender().sendMessage(ChatColor.GREEN + "Mitw lobby plugin enabled!");
+
 		location = Utils.stringToLocModes(getConfig().getString("spawn"));
-		final World world = Bukkit.getWorld("world");
-		world.setAutoSave(false);
-		world.setDifficulty(Difficulty.PEACEFUL);
-		world.setPVP(false);
+
+		this.getServer().getWorlds().forEach(world -> {
+			world.getEntities().forEach(Entity::remove);
+
+			world.setAutoSave(false);
+			world.setDifficulty(Difficulty.PEACEFUL);
+			world.setPVP(false);
+		});
+
 		new Frame(this, new LobbyAdapter());
 	}
 
@@ -93,10 +99,10 @@ public class MitwLobby extends JavaPlugin implements Listener, CommandExecutor {
 
 	@EventHandler
 	public void onSpawn(final EntitySpawnEvent e) {
-		if (e.getEntity().getType().equals(EntityType.ARROW) || e.getEntity() instanceof Player) {
-            return;
-        }
-		e.setCancelled(true);
+		EntityType type = e.getEntityType();
+		if (type != EntityType.PLAYER && type != EntityType.ARROW) {
+			e.setCancelled(true);
+		}
 	}
 
 	@EventHandler
@@ -130,38 +136,52 @@ public class MitwLobby extends JavaPlugin implements Listener, CommandExecutor {
 		}
 	}
 
+	@EventHandler
+	public void onSpawnPoint(PlayerSpawnLocationEvent event) {
+		event.setSpawnLocation(location);
+	}
+
 	@EventHandler(priority = EventPriority.LOWEST)
-	public void onJoin(final PlayerJoinEvent e) {
-		final Player p = e.getPlayer();
-		e.setJoinMessage(null);
-		p.setGameMode(GameMode.SURVIVAL);
-		p.getActivePotionEffects().stream().map(PotionEffect::getType).forEach(p::removePotionEffect);
-		p.setWalkSpeed(0.3f);
-		spawnItems(p);
-		for (final Player p1 : Bukkit.getOnlinePlayers()) {
-			if (p != p1) {
-				p.hidePlayer(p1);
-				p1.hidePlayer(p);
+	public void onJoin(final PlayerJoinEvent event) {
+		final Player player = event.getPlayer();
+		event.setJoinMessage(null);
+		player.setGameMode(GameMode.SURVIVAL);
+
+		player.getActivePotionEffects().stream().map(PotionEffect::getType).forEach(player::removePotionEffect);
+
+		for (final Player p1 : this.getServer().getOnlinePlayers()) {
+			if (player != p1) {
+				player.hidePlayer(p1);
+				p1.hidePlayer(player);
 			}
 		}
-		if (p.hasPermission("rank.vip")) {
-			p.setAllowFlight(true);
-			p.setFlySpeed(0.3f);
+
+		if (player.hasPermission("rank.vip")) {
+			player.setAllowFlight(true);
+			player.setFlySpeed(0.3f);
 		} else {
-			p.setAllowFlight(false);
+			player.setAllowFlight(false);
 		}
-		p.teleport(location);
-		Bukkit.getScheduler().runTaskLater(this, () -> {
-			if (!p.hasPlayedBefore()) {
-				new LanguageGUI().openMenu(p);
+
+		this.getServer().getScheduler().runTaskLater(this, () -> {
+			this.spawnItems(player);
+			if (!player.hasPlayedBefore()) {
+				new LanguageGUI().openMenu(player);
 			}
-		}, 10l);
+		}, 10L);
+	}
+
+	@EventHandler
+	public void onQuit(PlayerQuitEvent event) {
+		event.setQuitMessage(null);
 	}
 
 	private void spawnItems(final Player player) {
+
 		if (player == null) {
 			return;
 		}
+
 		player.getInventory().clear();
 		player.getInventory().setItem(0, new ItemBuilder(Material.COMPASS).name(language.translate(player, "server")).lore(" ", language.translate(player, "server.lore")).build());
 		player.getInventory().setItem(4, new ItemBuilder(SkullCreator.itemFromName("0qt")).name(language.translate(player, "language")).lore("", language.translate(player, "lang.lore")).build());
@@ -172,28 +192,28 @@ public class MitwLobby extends JavaPlugin implements Listener, CommandExecutor {
 
 	@EventHandler
 	public void onBlockBreak(final BlockBreakEvent e) {
-		if (!e.getPlayer().getGameMode().equals(GameMode.CREATIVE)) {
+		if (e.getPlayer().getGameMode() != GameMode.CREATIVE) {
 			e.setCancelled(true);
 		}
 	}
 
 	@EventHandler
 	public void onBlockPlace(final BlockPlaceEvent e) {
-		if (!e.getPlayer().getGameMode().equals(GameMode.CREATIVE)) {
+		if (e.getPlayer().getGameMode() != GameMode.CREATIVE) {
 			e.setCancelled(true);
 		}
 	}
 
 	@EventHandler
-	public void onLanguageChange(final ChangeLanguageEvent e) {
-		if (Mitw.getInstance().getLanguageData().hasLang(e.getPlayer())) {
-			final String from = Mitw.getInstance().getLanguageData().getLang(e.getPlayer());
-			if (from.equals(e.getLanguage())) {
+	public void onLanguageChange(final ChangeLanguageEvent event) {
+		if (Mitw.getInstance().getLanguageData().hasLang(event.getPlayer())) {
+			final String from = Mitw.getInstance().getLanguageData().getLang(event.getPlayer());
+			if (from.equals(event.getLanguage())) {
 				return;
 			}
 		}
-		iSelectorAPI.setLanguage(e.getPlayer(), e.getLanguage());
-		Bukkit.getScheduler().runTaskLater(this, () -> spawnItems(e.getPlayer()), 2l);
+		iSelectorAPI.setLanguage(event.getPlayer(), event.getLanguage());
+		Bukkit.getScheduler().runTaskLater(this, () -> spawnItems(event.getPlayer()), 2l);
 	}
 
 	@EventHandler
